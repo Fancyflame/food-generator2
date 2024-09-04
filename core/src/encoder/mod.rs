@@ -1,6 +1,6 @@
-use crate::syntax::{Section, Segmentation};
-
 use bits::BitReader;
+
+use crate::syntax::{Section, Seg, SerializeMap};
 
 mod bits;
 
@@ -10,8 +10,8 @@ struct Encoder<'a> {
 }
 
 impl<'a> Encoder<'a> {
-    fn encode(&mut self, section: &'a Section) {
-        let mut range = &*section.rules;
+    fn encode(&mut self, map: &SerializeMap, section: &Section) {
+        let mut range = &section.encoder[..];
         assert!(!range.is_empty());
 
         let rule = loop {
@@ -25,21 +25,21 @@ impl<'a> Encoder<'a> {
 
         for seg in rule {
             match seg {
-                Segmentation::Text(txt) => self.output.push_str(&txt),
-                Segmentation::Use(r) => self.encode(&r),
+                Seg::Text(txt) => self.output.push_str(&txt),
+                Seg::Use(r) => self.encode(map, &map[*r as usize]),
             }
         }
     }
 }
 
-pub fn encode(section: &Section, input: &[u8]) -> String {
+pub fn encode(map: &SerializeMap, input: &[u8]) -> String {
     let mut encoder = Encoder {
         input: BitReader::new(input),
         output: String::new(),
     };
 
     while !encoder.input.ended() {
-        encoder.encode(section);
+        encoder.encode(map, &map[0]);
     }
 
     encoder.output

@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use bits::BitWriter;
 
-use crate::syntax::{Section, Segmentation};
+use crate::syntax::{Layer, Section, Seg, SerializeMap};
 
 mod bits;
 
@@ -11,28 +11,45 @@ struct Decoder<'a> {
 }
 
 impl Decoder<'_> {
-    fn decode(&mut self, section: &Section) -> Result<()> {
-        let nth_rule = section
-            .str2index
-            .try_match(&mut self.input)
-            .ok_or_else(|| self.error())?;
+    fn decode(&mut self, map: &SerializeMap, section: &Section) -> Result<()> {
+        let nth_rule = self.match_index(section)?;
+        self.write_msg(nth_rule, section.encoder.len());
 
-        self.write_msg(nth_rule, section.rules.len());
-
-        for seg in &section.rules[nth_rule] {
+        for seg in &section.encoder[nth_rule] {
             match seg {
-                Segmentation::Text(txt) => {
-                    if self.input.starts_with(txt) {
+                Seg::Text(txt) => {
+                    if self.input.starts_with(&**txt) {
                         self.input = &self.input[txt.len()..];
                     } else {
                         return Err(self.error());
                     }
                 }
-                Segmentation::Use(r) => self.decode(&r)?,
+                Seg::Use(r) => self.decode(map, &map[*r as usize])?,
             }
         }
 
         Ok(())
+    }
+
+    fn match_index(&self, section: &Section) -> Result<usize> {
+        let mut chars = self.input.chars();
+        let mut layer = &section.decoder;
+
+        for ch in &mut chars {
+            match layer {
+                Layer::Branch(b) => match b.get(&ch) {
+                    Some(l) => layer = l,
+                    None => {
+                        let (display_str, omit) =
+                            truncate_str_after_chars(chars.as_str(), 10, "...");
+                        return Err(anyhow!("found unexpected character `{ch}` when parsing at `{display_str}{omit}`"));
+                    }
+                },
+                &Layer::Certain(c) => return Ok(c as _),
+            }
+        }
+
+        return Err(anyhow!("unexpected end of stream"));
     }
 
     fn error(&self) -> anyhow::Error {
@@ -66,14 +83,14 @@ impl Decoder<'_> {
     }
 }
 
-pub fn decode(s: &str, section: &Section) -> Result<Vec<u8>> {
+pub fn decode(map: &SerializeMap, s: &str) -> Result<Vec<u8>> {
     let mut decoder = Decoder {
         input: s,
         output: BitWriter::new(),
     };
 
     while !decoder.ended() {
-        decoder.decode(section)?;
+        decoder.decode(map, &map[0])?;
     }
 
     Ok(decoder.finish())
