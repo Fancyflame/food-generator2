@@ -29,7 +29,7 @@ impl BitWriter {
     }
 
     pub fn finish(mut self) -> Vec<u8> {
-        // we ignore `empty_bits`
+        // 忽略 `empty_bits`
 
         let mut resized_len = self.decoded.len();
         for window in self.decoded.windows(2).rev() {
