@@ -13,4 +13,5 @@ take_mut = "0.2"
 unicode-ident = "1.0"
 
 [features]
+compile = []
 compression = []

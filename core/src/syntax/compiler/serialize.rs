@@ -1,30 +1,15 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use crate::share_str::ShareStr;
+use crate::{
+    share_str::ShareStr,
+    syntax::{Layer, Section, Seg},
+};
 
 use super::{
     link::{LinkedSection, LinkedSeg},
     searcher::Trie,
     SerializeMap,
 };
-
-#[derive(Debug)]
-pub struct Section {
-    pub encoder: Vec<Vec<Seg>>,
-    pub decoder: Layer,
-}
-
-#[derive(Debug)]
-pub enum Seg {
-    Text(ShareStr),
-    Use(u32),
-}
-
-#[derive(Debug)]
-pub enum Layer {
-    Branch(HashMap<char, Layer>),
-    Certain(u32),
-}
 
 pub fn serialize(root_section: &LinkedSection) -> SerializeMap {
     assert_eq!(root_section.info.name.as_str(), "entry");

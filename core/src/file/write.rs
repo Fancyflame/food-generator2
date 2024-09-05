@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use deflate::deflate_bytes;
+use deflate::deflate_bytes_zlib;
 
 use crate::syntax::{Layer, Section, Seg};
 
@@ -19,7 +19,7 @@ pub fn save_lib(secs: &Vec<Section>) -> Vec<u8> {
         put_layer(&mut data, &sec.decoder);
     }
 
-    deflate_bytes(&data)
+    deflate_bytes_zlib(&data)
 }
 
 fn put_seg(data: &mut Vec<u8>, seg: &Seg) {

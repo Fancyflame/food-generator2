@@ -2,7 +2,7 @@ use core::str;
 use std::{collections::HashMap, io::Read};
 
 use bytes::Buf;
-use inflate::inflate_bytes;
+use inflate::inflate_bytes_zlib;
 
 use crate::{
     share_str::ShareStr,
@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub fn read_lib(bytes: &[u8]) -> Option<SerializeMap> {
-    let decompressed = inflate_bytes(bytes).ok()?;
+    let decompressed = inflate_bytes_zlib(bytes).ok()?;
     let mut bytes = &decompressed[..];
 
     let mut sections = Vec::new();

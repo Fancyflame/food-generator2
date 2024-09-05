@@ -3,6 +3,7 @@ use bits::BitReader;
 use crate::syntax::{Section, Seg, SerializeMap};
 
 mod bits;
+mod lcg;
 
 struct Encoder<'a> {
     input: BitReader<'a>,

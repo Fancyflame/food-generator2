@@ -29,20 +29,22 @@ impl BitWriter {
     }
 
     pub fn finish(mut self) -> Vec<u8> {
-        if self.empty_bits < 8 {
-            self.decoded.push(self.current);
-        }
+        // we ignore `empty_bits`
 
-        let mut truncate_len = self.decoded.len();
+        let mut resized_len = self.decoded.len();
+        for window in self.decoded.windows(2).rev() {
+            resized_len -= 1;
 
-        for (index, byte) in self.decoded.iter().copied().rev().enumerate() {
-            if byte != 0 {
-                truncate_len = index + 1;
+            let &[front, back] = window else {
+                unreachable!();
+            };
+
+            if back == !front {
                 break;
             }
         }
 
-        self.decoded.truncate(self.decoded.len() - truncate_len);
+        self.decoded.truncate(resized_len);
         self.decoded
     }
 }

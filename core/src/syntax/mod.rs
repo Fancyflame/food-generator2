@@ -1,18 +1,29 @@
-use std::path::Path;
+use std::collections::HashMap;
 
-use anyhow::Result;
+#[cfg(feature = "compile")]
+pub use compiler::compile;
 
-pub use serialize::{Layer, Section, Seg};
+use crate::share_str::ShareStr;
 
-mod link;
-mod parse_tokens;
-mod searcher;
-mod serialize;
+#[cfg(feature = "compile")]
+mod compiler;
 
 pub type SerializeMap = Vec<Section>;
 
-pub fn parse(base_dir: impl AsRef<Path>) -> Result<SerializeMap> {
-    let expr_secs = parse_tokens::parse(base_dir)?;
-    let linked_secs = link::link_secs(expr_secs)?;
-    Ok(serialize::serialize(&linked_secs))
+#[derive(Debug)]
+pub struct Section {
+    pub encoder: Vec<Vec<Seg>>,
+    pub decoder: Layer,
+}
+
+#[derive(Debug)]
+pub enum Seg {
+    Text(ShareStr),
+    Use(u32),
+}
+
+#[derive(Debug)]
+pub enum Layer {
+    Branch(HashMap<char, Layer>),
+    Certain(u32),
 }

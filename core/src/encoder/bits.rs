@@ -1,37 +1,34 @@
+use super::lcg::LcgU8;
+
 pub struct BitReader<'a> {
     current: u8,
-    remaining: &'a [u8],
     rest_bits: u8,
-    end_token_sent: bool,
+    source: Source<'a>,
+}
+
+enum Source<'a> {
+    Data(&'a [u8]),
+    EndToken(u8),
+    Trailing(LcgU8),
 }
 
 impl<'a> BitReader<'a> {
     pub fn new(bytes: &'a [u8]) -> Self {
         BitReader {
             current: 0,
-            remaining: bytes,
             rest_bits: 0,
-            end_token_sent: false,
+            source: if bytes.last().is_some() {
+                Source::Data(bytes)
+            } else {
+                Source::Trailing(LcgU8::new(0))
+            },
         }
     }
 
     pub fn get(&mut self) -> bool {
         if self.rest_bits == 0 {
-            match self.remaining.split_first() {
-                Some((&first, rest)) => {
-                    self.remaining = rest;
-                    self.current = first;
-                    self.rest_bits = 7;
-                }
-                None => {
-                    if self.end_token_sent {
-                        return false;
-                    } else {
-                        self.end_token_sent = true;
-                        return true;
-                    }
-                }
-            }
+            self.current = self.get_byte_from_source();
+            self.rest_bits = 7;
         } else {
             self.rest_bits -= 1;
         }
@@ -41,7 +38,26 @@ impl<'a> BitReader<'a> {
         result
     }
 
+    fn get_byte_from_source(&mut self) -> u8 {
+        match &mut self.source {
+            Source::Data(data) => {
+                let (&current, rest) = data.split_first().unwrap();
+                if rest.is_empty() {
+                    self.source = Source::EndToken(!current);
+                } else {
+                    *data = rest;
+                };
+                current
+            }
+            &mut Source::EndToken(token) => {
+                self.source = Source::Trailing(LcgU8::new(token));
+                token
+            }
+            Source::Trailing(lcg) => lcg.next(),
+        }
+    }
+
     pub fn ended(&self) -> bool {
-        self.end_token_sent
+        matches!(self.source, Source::Trailing(_))
     }
 }
