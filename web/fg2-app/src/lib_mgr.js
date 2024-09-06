@@ -1,5 +1,20 @@
-//import * as wa from "food-generator2-wasm";
-let wa = require("food-generator2-wasm");
+import * as wa from "food-generator2-wasm";
+wa;
+/**
+ * @type {wa.Library | null}
+ */
+export let GLOBAL_LIB = null;
+
+export async function load_lib() {
+    let data = await fetchRemoteFile("./cache.fg2");
+    data = new Uint8Array(data);
+    let lib = wa.Library.load_lib(data);
+
+    if (GLOBAL_LIB !== null) {
+        GLOBAL_LIB.free();
+    }
+    GLOBAL_LIB = lib;
+}
 
 function fetchRemoteFile(url) {
     return new Promise((resolve, reject) => {
@@ -23,17 +38,3 @@ function fetchRemoteFile(url) {
         xhr.send();
     });
 }
-
-async function foo() {
-    let data = await fetchRemoteFile("./cache.fg2");
-    data = new Uint8Array(data);
-    let lib = wa.Library.load_lib(data);
-
-    let input = prompt("输入文本：");
-    if (input === null) {
-        return;
-    }
-    let output = lib.encode(input);
-    alert(output);
-}
-foo()

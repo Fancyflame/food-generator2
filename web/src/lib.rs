@@ -1,5 +1,7 @@
 mod utils;
 
+use std::fmt::Display;
+
 use food_generator2::syntax::SerializeMap;
 use wasm_bindgen::prelude::*;
 
@@ -34,4 +36,13 @@ impl Library {
     pub fn encode(&self, txt: &str) -> String {
         food_generator2::encode(&self.lib, txt.as_bytes())
     }
+
+    pub fn decode(&self, txt: &str) -> Result<String, String> {
+        let bytes = food_generator2::decode(&self.lib, txt).map_err(map_err)?;
+        String::from_utf8(bytes).map_err(map_err)
+    }
+}
+
+fn map_err<E: Display>(err: E) -> String {
+    err.to_string()
 }

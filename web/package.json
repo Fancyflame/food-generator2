@@ -1,6 +1,0 @@
-{
-    "dependencies": {
-        "food-generator2-wasm": "file:./pkg",
-        "create-wasm-app": "file:c:\\Program Files\\nodejs\\node_modules\\create-wasm-app"
-    }
-}

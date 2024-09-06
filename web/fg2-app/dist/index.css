@@ -1,0 +1,79 @@
+html {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+body {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+  margin: 0;
+}
+body h1 {
+  color: #2c3e50;
+  text-shadow: 0 0 15px #d7d7d7;
+}
+#dialog {
+  width: 90%;
+  height: 80%;
+  max-width: 800px;
+  max-height: 1200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
+}
+#dialog textarea {
+  border: none;
+  font-size: 1.1em;
+  flex: 3 3 auto;
+  padding: 20px;
+  outline: none;
+  resize: none;
+  font-family: sans-serif;
+  color: #2c3e50;
+}
+#dialog #btn-field {
+  flex: 1 1 40px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+}
+#dialog #btn-field button {
+  border: none;
+  width: 200px;
+  height: 50px;
+  z-index: 1;
+  border-radius: 10px;
+  transition: 0.3s all;
+  background-color: #fff;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+#dialog #btn-field button#enc-btn {
+  box-shadow: 0 0 25px -15px #2ecc71;
+  border: 2px solid #2ecc71;
+  color: #2ecc71;
+}
+#dialog #btn-field button#enc-btn:hover {
+  background-color: #2ecc71;
+  box-shadow: 0 0 55px -10px #2ecc71;
+  color: #fff;
+}
+#dialog #btn-field button#dec-btn {
+  box-shadow: 0 0 25px -15px #9b59b6;
+  border: 2px solid #9b59b6;
+  color: #9b59b6;
+}
+#dialog #btn-field button#dec-btn:hover {
+  background-color: #9b59b6;
+  box-shadow: 0 0 55px -10px #9b59b6;
+  color: #fff;
+}
