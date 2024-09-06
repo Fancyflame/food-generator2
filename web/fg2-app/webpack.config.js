@@ -13,7 +13,7 @@ module.exports = {
             patterns: [
                 'index.html',
                 'dist/index.css',
-                "cache.fg2"
+                "../../cache.fg2"
             ]
         })
     ],

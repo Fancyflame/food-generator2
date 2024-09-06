@@ -3,6 +3,7 @@ use std::{
         hash_map::{Entry, VacantEntry},
         HashMap,
     },
+    fmt::Write as _,
     rc::Rc,
 };
 
@@ -102,7 +103,7 @@ impl Trie {
                     }
                 },
                 None => {
-                    return Err(anyhow!("cannot expand this node as it has reached the end"));
+                    return Err(anyhow!("this rule contains other rule"));
                 }
             }
         }
@@ -118,6 +119,8 @@ enum InsertResult<'a> {
 
 pub fn compile(rules: &Vec<Vec<LinkedSeg>>, info: &SecInfo) -> Result<Trie> {
     let mut trie = Trie::new();
+    let mut footprint = String::new();
+
     for (rule, value) in rules.iter().zip(0u32..) {
         let mut buffer = Vec::new();
         for seg in rule.iter().rev() {
@@ -127,18 +130,34 @@ pub fn compile(rules: &Vec<Vec<LinkedSeg>>, info: &SecInfo) -> Result<Trie> {
             }
         }
 
-        compile_rule(&mut trie, buffer, value)
-            .map_err(|err| anyhow!("section [{info}] decode tree build failed: {err}"))?;
+        let display_rule = display_rule(rule);
+
+        compile_rule(&mut trie, buffer, &mut footprint, value).map_err(|err| {
+            anyhow!(
+                "section [{info}] decode tree build failed.\n\
+                error msg: {err}\n\
+                when building `{display_rule}`\n\
+                at `{footprint}`"
+            )
+        })?;
+
+        footprint.clear();
     }
     Ok(trie)
 }
 
-fn compile_rule(mut trie: &mut Trie, mut buffer: Vec<SearchSeg>, value: u32) -> Result<()> {
+fn compile_rule(
+    mut trie: &mut Trie,
+    mut buffer: Vec<SearchSeg>,
+    footprint: &mut String,
+    value: u32,
+) -> Result<()> {
     while let Some(seg) = buffer.pop() {
         match seg {
             SearchSeg::Text(txt) => {
                 let mut chars = txt.chars();
                 for ch in &mut chars {
+                    footprint.push(ch);
                     match trie.insert(ch)? {
                         InsertResult::Occupied(occ) => trie = occ,
                         InsertResult::Vacant(vac) => {
@@ -161,11 +180,16 @@ fn compile_rule(mut trie: &mut Trie, mut buffer: Vec<SearchSeg>, value: u32) -> 
                     continue;
                 }
                 Trie::Branch(b) => {
+                    let truncate_len = footprint.len();
                     for (&key, content) in b.iter() {
                         let mut buffer2 = buffer.clone();
                         buffer2.push(SearchSeg::Use(content.clone()));
+
+                        footprint.push(key);
                         match trie.insert(key)? {
-                            InsertResult::Occupied(occ) => compile_rule(occ, buffer2, value)?,
+                            InsertResult::Occupied(occ) => {
+                                compile_rule(occ, buffer2, footprint, value)?
+                            }
                             InsertResult::Vacant(vac) => {
                                 vac.insert(
                                     Trie::Leaf {
@@ -176,6 +200,8 @@ fn compile_rule(mut trie: &mut Trie, mut buffer: Vec<SearchSeg>, value: u32) -> 
                                 );
                             }
                         }
+
+                        footprint.truncate(truncate_len);
                     }
                     return Ok(());
                 }
@@ -190,4 +216,17 @@ fn split_first(s: &ShareStr) -> Option<(char, ShareStr)> {
     let ch = s.chars().next()?;
     let rest = s.clone_range(ch.len_utf8()..);
     Some((ch, rest))
+}
+
+fn display_rule(rule: &Vec<LinkedSeg>) -> String {
+    let mut string = String::new();
+    for seg in rule {
+        match seg {
+            LinkedSeg::Text(t) => string += t.as_str(),
+            LinkedSeg::Use(u) => {
+                write!(&mut string, "{{{}}}", u.info.name).unwrap();
+            }
+        }
+    }
+    string
 }
