@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
+    <meta name="viewport" charset="utf-8" content="width=device-width, initial-scale=1.0">
     <link href="./index.css" rel="stylesheet" type="text/css">
     <title>Food Generator 2</title>
 </head>
@@ -14,12 +14,20 @@
 
     <h1>Food Generator 2</h1>
     <div id="dialog">
-        <textarea id="input" placeholder="点我输入文本"></textarea>
+        <div class="text-div">
+            <textarea id="input" placeholder="点我输入文本"></textarea>
+            <a id="paste">粘贴</a>
+        </div>
+
         <div id="btn-field">
             <button id="enc-btn">编码</button>
             <button id="dec-btn">解码</button>
         </div>
-        <textarea id="output" readonly></textarea>
+
+        <div class="text-div">
+            <textarea id="output" readonly></textarea>
+            <a id="copy">复制</a>
+        </div>
     </div>
 </body>
 
