@@ -2,6 +2,13 @@
 
 这个名字不重要，这只是延续传统罢了。这是癫趴文本编码器第二代。
 
+## 您可以在线发电
+
+很高兴Rust可以编译到WebAssembly，使您可以在线发电！
+网址：<https://fancyflame.github.io/food-generator2/web/fg2-app/dist/>
+
+<h3 align="center">🦀 + 🕸 = 🤣👉</h3>
+
 ## 编码示例
 
 `e`的意思是encode，也可以用`encode`代替
