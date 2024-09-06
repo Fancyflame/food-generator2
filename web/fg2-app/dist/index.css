@@ -54,6 +54,7 @@ body h1 {
   font-weight: bold;
   padding: 5px 10px;
   background: rgba(255,255,255,0.627);
+  user-select: none;
 }
 #dialog #btn-field {
   flex: 1 1 40px;

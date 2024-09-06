@@ -8,6 +8,17 @@ const [inputArea, outputArea, encBtn, decBtn, pasteBtn, copyBtn] = [
     "input", "output", "enc-btn", "dec-btn", "paste", "copy"
 ].map(id => document.getElementById(id));
 
+inputArea.oninput = setPasteBtnText;
+
+function setPasteBtnText() {
+    if (inputArea.value == "") {
+        pasteBtn.innerText = "粘贴"
+    } else {
+        pasteBtn.innerText = "清空"
+    }
+}
+setPasteBtnText();
+
 encBtn.onclick = () => {
     let out = GLOBAL_LIB.encode(inputArea.value);
     outputArea.style.color = "";
@@ -25,8 +36,13 @@ decBtn.onclick = () => {
 };
 
 pasteBtn.onclick = async function () {
-    let txt = await navigator.clipboard.readText();
-    inputArea.value = txt;
+    if (inputArea.value == "") {
+        let txt = await navigator.clipboard.readText();
+        inputArea.value = txt;
+    } else {
+        inputArea.value = "";
+    }
+    setPasteBtnText();
 }
 
 copyBtn.onclick = async function () {
